@@ -1,0 +1,25 @@
+From 462a032c2e086959fd2a8b81f069daeb7e2515d6 Mon Sep 17 00:00:00 2001
+From: Camilo Aguilar <c4milo@users.noreply.github.com>
+Date: Mon, 26 Mar 2018 21:36:51 -0400
+Subject: Helps the linker to find libdl and dlopen
+
+Needed by Folly in https://github.com/facebook/folly/blob/master/folly/concurrency/CacheLocality.cpp#L212. The linking problem arises when trying to link against a statically compiled Folly library. A Dockerfile reproducing the problem can be found at https://gist.github.com/c4milo/46a35c3c171dc67cfc3e47e460a69dab. This change also fixes #219.
+---
+ mcrouter/configure.ac | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/mcrouter/configure.ac b/mcrouter/configure.ac
+index edd42011..6c7f2add 100644
+--- a/mcrouter/configure.ac
++++ b/mcrouter/configure.ac
+@@ -118,6 +118,7 @@ AC_CHECK_HEADER([folly/Likely.h], [], [AC_MSG_ERROR(
+ )], [])
+ AC_CHECK_LIB([wangle], [getenv], [], [AC_MSG_ERROR(
+              [Please install the wangle library])])
++AC_CHECK_LIB([dl], [dlopen], [])
+ 
+ # Checks for typedefs, structures, and compiler characteristics.
+ AC_HEADER_STDBOOL
+-- 
+2.16.2
+
