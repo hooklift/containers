@@ -50,4 +50,6 @@ RUN make TARGET_LDFLAGS=-static TARGET_CFLAGS=-static TARGET=linux2628 ARCH=x86_
 FROM scratch
 COPY --from=builder /haproxy/haproxy .
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-CMD ["./haproxy"]
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /sbin/nologin /sbin/nologin
+ENTRYPOINT ["./haproxy"]

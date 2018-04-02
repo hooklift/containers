@@ -1,3 +1,3 @@
 # Hooklift Platform Containers
 
-Statically compiled binaries, packaged as containers using the `scratch` base image.
+Lightweight Hooklift platform containers.

@@ -77,4 +77,4 @@ RUN DEBIAN_FRONTEND=noninteractive \
 
 COPY --from=0 /mcrouter/mcrouter/mcrouter .
 
-CMD ["./mcrouter"]
+ENTRYPOINT ["./mcrouter"]
