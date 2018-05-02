@@ -1,10 +1,11 @@
 FROM alpine:3.7 as builder
 
-ENV HAPROXY_VERSION 1.8.5
+ENV HAPROXY_BASELINE 1.8
+ENV HAPROXY_VERSION ${HAPROXY_BASELINE}.8
 ENV LIBRESSL_VERSION 2.6.4
 ENV OPENSSL_VERSION 1.1.0h
 ENV LIBSLZ_VERSION 1.0.0
-ENV PCRE_VERSION 8.41
+ENV PCRE_VERSION 8.42
 
 ENV LIBRESSL /tmp/staticssl
 ENV PCRE /tmp/staticpcre
@@ -24,7 +25,7 @@ RUN ./config --prefix=${LIBRESSL} no-shared no-async \
 
 # STATIC PCRE
 WORKDIR /pcre
-RUN curl -s http://ftp.cs.stanford.edu/mirrors/exim/pcre/pcre-${PCRE_VERSION}.tar.gz | tar xvzf - --strip-components=1
+RUN curl -s https://ftp.pcre.org/pub/pcre/pcre-${PCRE_VERSION}.tar.gz | tar xvzf - --strip-components=1
 RUN ./configure --prefix=${PCRE} --enable-shared=no --enable-utf8 --enable-jit \
 	&& make install
 
@@ -38,7 +39,7 @@ RUN make static \
 # libpcre is compiled statically but haproxy still dynamically links to libc. So,
 # to fix it we had to patch the Makefile and remove -Wl, -Bdynamic from the pcre ldflags.
 WORKDIR /haproxy
-RUN curl -s http://www.haproxy.org/download/1.8/src/haproxy-${HAPROXY_VERSION}.tar.gz | tar xvzf - --strip-components=1 \
+RUN curl -s http://www.haproxy.org/download/${HAPROXY_BASELINE}/src/haproxy-${HAPROXY_VERSION}.tar.gz | tar xvzf - --strip-components=1 \
 	&& sed -i 's/-Wl,-Bdynamic//' Makefile
 
 RUN make TARGET_LDFLAGS=-static TARGET_CFLAGS=-static TARGET=linux2628 ARCH=x86_64 USE_PCRE_JIT=1 USE_STATIC_PCRE=1 USE_OPENSSL=1 \
