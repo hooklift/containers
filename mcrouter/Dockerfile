@@ -1,8 +1,8 @@
 FROM debian:stretch-slim
 
 ENV MCROUTER_VERSION master
-ENV FOLLY_VERSION v2018.03.26.00
-ENV WANGLE_VERSION v2018.03.26.00
+ENV FOLLY_VERSION v2018.05.07.00
+ENV WANGLE_VERSION v2018.05.07.00
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -49,9 +49,7 @@ RUN cmake configure wangle \
 
 WORKDIR /mcrouter
 RUN curl -Ls https://github.com/facebook/mcrouter/archive/${MCROUTER_VERSION}.tar.gz | tar xvzf - --strip-components=1
-ADD folly.patch .
-RUN git apply folly.patch \
-	&& cd mcrouter \
+RUN cd mcrouter \
 	&& autoreconf --install \
 	&& ./configure \
 	&& make VERBOSE=1
