@@ -1,6 +1,6 @@
 FROM alpine:3.7 as builder
 
-ENV MEMCACHED_VERSION 1.5.7
+ENV MEMCACHED_VERSION 1.5.8
 ENV LIBEVENT_VERSION 2.1.8-stable
 
 RUN apk add --no-cache --update \
