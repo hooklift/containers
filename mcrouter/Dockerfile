@@ -1,8 +1,10 @@
 FROM debian:stretch-slim
 
 ENV MCROUTER_VERSION master
-ENV FOLLY_VERSION v2018.05.07.00
-ENV WANGLE_VERSION v2018.05.07.00
+# ENV MCROUTER_VERSION v0.38.0-release
+ENV FOLLY_VERSION v2018.10.08.00
+ENV WANGLE_VERSION v2018.10.08.00
+ENV FIZZ_VERSION v2018.10.08.00
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -30,6 +32,8 @@ RUN DEBIAN_FRONTEND=noninteractive \
 	libsnappy-dev \
 	liblzma-dev \
 	libgtest-dev \
+	libsodium-dev \
+	libunwind-dev \
 	curl \
 	git \
 	ragel \
@@ -38,6 +42,12 @@ RUN DEBIAN_FRONTEND=noninteractive \
 WORKDIR /folly
 RUN curl -Ls https://github.com/facebook/folly/archive/${FOLLY_VERSION}.tar.gz | tar xvzf - --strip-components=1
 RUN cmake configure . \
+	&& make \
+	&& make install
+
+WORKDIR /fizz
+RUN curl -Ls https://github.com/facebookincubator/fizz/archive/${FIZZ_VERSION}.tar.gz | tar xvzf - --strip-components=1
+RUN cmake configure fizz \
 	&& make \
 	&& make install
 
