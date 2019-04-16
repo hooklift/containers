@@ -1,11 +1,11 @@
 FROM alpine:3.7 as builder
 
-ENV HAPROXY_BASELINE 1.8
-ENV HAPROXY_VERSION ${HAPROXY_BASELINE}.14
+ENV HAPROXY_BASELINE 1.9
+ENV HAPROXY_VERSION ${HAPROXY_BASELINE}.6
 ENV LIBRESSL_VERSION 2.6.4
-ENV OPENSSL_VERSION 1.1.0h
-ENV LIBSLZ_VERSION 1.0.0
-ENV PCRE_VERSION 8.42
+ENV OPENSSL_VERSION 1.1.1b
+ENV LIBSLZ_VERSION 1.1.0
+ENV PCRE_VERSION 10.32
 
 ENV LIBRESSL /tmp/staticssl
 ENV PCRE /tmp/staticpcre
@@ -25,13 +25,13 @@ RUN ./config --prefix=${LIBRESSL} no-shared no-async \
 
 # STATIC PCRE
 WORKDIR /pcre
-RUN curl -s https://ftp.pcre.org/pub/pcre/pcre-${PCRE_VERSION}.tar.gz | tar xvzf - --strip-components=1
+RUN curl -s https://ftp.pcre.org/pub/pcre/pcre2-${PCRE_VERSION}.tar.gz | tar xvzf - --strip-components=1
 RUN ./configure --prefix=${PCRE} --enable-shared=no --enable-utf8 --enable-jit \
 	&& make install
 
 # STATIC LIBSLZ
 WORKDIR /libslz
-RUN curl -s -L https://github.com/haproxy/libslz/archive/v${LIBSLZ_VERSION}.tar.gz | tar xvzf - --strip-components=1
+RUN curl -s -L "http://git.1wt.eu/web?p=libslz.git;a=snapshot;h=v${LIBSLZ_VERSION};sf=tgz" | tar xvzf - --strip-components=1
 RUN make static \
 	&& make install
 
@@ -42,11 +42,14 @@ WORKDIR /haproxy
 RUN curl -s http://www.haproxy.org/download/${HAPROXY_BASELINE}/src/haproxy-${HAPROXY_VERSION}.tar.gz | tar xvzf - --strip-components=1 \
 	&& sed -i 's/-Wl,-Bdynamic//' Makefile
 
-RUN make TARGET_LDFLAGS=-static TARGET_CFLAGS=-static TARGET=linux2628 ARCH=x86_64 USE_PCRE_JIT=1 USE_STATIC_PCRE=1 USE_OPENSSL=1 \
-	PCRE_LIB=${PCRE}/lib PCRE_INC=${PCRE}/include  \
+# TODO(c4milo): USE_LUA=1
+RUN make TARGET_LDFLAGS=-static TARGET_CFLAGS=-static TARGET=linux2628 ARCH=x86_64 USE_PCRE2_JIT=1 USE_STATIC_PCRE2=1 USE_OPENSSL=1 \
+	PCRE_LIB=${PCRE}/lib PCRE_INC=${PCRE}/include PCRE2DIR=${PCRE} \
 	SSL_INC=${LIBRESSL}/include SSL_LIB=${LIBRESSL}/lib \
 	USE_SLZ=1 SLZ_INC=libslz/src SLZ_LIB=libslz \
-	USE_LINUX_SPLICE=1 USE_LINUX_TPROXY=1
+	USE_LINUX_SPLICE=1 USE_LINUX_TPROXY=1 \
+	USE_LINUX_TPROXY=1 USE_REGPARM=1 \
+	USE_THREAD=1 USE_TFO=1
 
 FROM scratch
 COPY --from=builder /haproxy/haproxy .
